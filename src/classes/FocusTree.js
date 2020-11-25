@@ -22,7 +22,7 @@ function parseContent(content) {
         let lastChar = '';
         let takeAll = false;
         [...line].forEach((char, index) => {
-            if (line === 'id = BAT_suspend_landtag') {
+            if (line === 'id = ABC_doctrine_effort_2') {
                 log = true;
             }
 
@@ -42,7 +42,7 @@ function parseContent(content) {
                     takeAll = true;
                     result += ' =';
                 } else {
-                    if(! result.endsWith('"')){
+                    if (!result.endsWith('"')) {
                         result += '"';
                     }
                     result += ':';
@@ -81,7 +81,7 @@ function parseContent(content) {
                     result += '[';
                 } else {
                     if (!result.endsWith(':')) {
-                        if (!result.endsWith('":')) {
+                        if (!result.endsWith('"')) {
                             result += '"';
                         }
                         result += ':';
