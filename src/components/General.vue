@@ -9,10 +9,9 @@ import FileField from "@/components/Form/FileField";
 export default {
   name: 'General',
   components: {FileField},
-
   methods: {
     treeChosen({content}){
-      console.log(content);
+      this.$emit('tree-chosen',content);
     }
   }
 }
