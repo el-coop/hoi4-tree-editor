@@ -1,5 +1,5 @@
 const clarinet = require("clarinet");
-const ARRAYABLE_PROPERTIES = ['"traits":', '"search_filters":', '"prioritize":', '"remove_ideas":', '"add_ideas":'];
+const ARRAYABLE_PROPERTIES = ['"traits":', '"search_filters":', '"prioritize":', '"remove_ideas":', '"add_ideas":', '"nationalities":', '"generator":'];
 
 function endsWithAny(string, suffixes) {
     return suffixes.some(function (suffix) {
@@ -21,9 +21,18 @@ function parseContent(content) {
         let stringStarted = false;
         let lastChar = '';
         let takeAll = false;
+        let takeAllStart = 0;
+        let ignoreRest = false;
+        line = line.replace(/\t/g, ' ');
         [...line].forEach((char, index) => {
-            if (line === 'id = ABC_doctrine_effort_2') {
+            if (line === '}if = {') {
                 log = true;
+            } else {
+                log = false;
+            }
+
+            if (ignoreRest) {
+                return;
             }
 
             if (takeAll) {
@@ -32,7 +41,11 @@ function parseContent(content) {
                     if (!result.endsWith('"')) {
                         result += '"';
                     }
-                    result += ',';
+
+                    if (! endsWithAny(result.slice(-(index - takeAllStart + 2)).substr(0, 1),[',','{'])) {
+                        result += ',';
+                        expectingKey = true;
+                    }
                     takeAll = false;
                 }
 
@@ -40,6 +53,7 @@ function parseContent(content) {
                 if (result.endsWith(',')) {
                     result = result.slice(0, -2);
                     takeAll = true;
+                    takeAllStart = index;
                     result += ' =';
                 } else {
                     if (!result.endsWith('"')) {
@@ -52,29 +66,38 @@ function parseContent(content) {
                 if (result.endsWith('log":') && line[index + 2] !== '"') {
                     result += '"';
                     takeAll = true;
+                    takeAllStart = index;
                 }
             } else if (char === '"') {
                 result += '"';
                 takeAll = true;
+                takeAllStart = index;
             } else if (char === '>' || char === '<') {
                 result += `: "${char} `;
                 expectingKey = false;
                 stringStarted = true;
             } else if (char === '}') {
+                if (result.endsWith(',"')) {
+                    result = result.slice(0, -1);
+                }
+
                 if (result.endsWith(',')) {
                     result = result.slice(0, -1);
                 } else if (!endsWithAny(result, ['"', '{'])) {
                     result += '"';
                 }
                 if (takeAsArray) {
+                    if (result.endsWith('["')) {
+                        result = result.slice(0, -1);
+                    }
                     result += "],";
                     takeAsArray = false;
                 } else {
                     result += '},';
+                    expectingKey = true;
                 }
 
             } else if (char === '{') {
-                // if (result.endsWith('"traits":') || result.endsWith('"search_filters":') || result.endsWith('"prioritize":')) {
 
                 if (endsWithAny(result, ARRAYABLE_PROPERTIES)) {
                     takeAsArray = true;
@@ -92,9 +115,15 @@ function parseContent(content) {
                 }
 
             } else if (char !== ' ') {
-                if ((lastChar === ' ' || lastChar === '') && !stringStarted) {
-                    result += '"';
-                    stringStarted = true;
+                if ((lastChar === ' ' || lastChar === '' || lastChar === '{' || lastChar === '=' ||  lastChar === '}') && !stringStarted) {
+                    if (!endsWithAny(result, [':', '{', ',', '['])) {
+                        result += ":{"
+                        ignoreRest = true;
+                        return;
+                    } else {
+                        result += '"';
+                        stringStarted = true;
+                    }
                 }
                 result += char;
 
@@ -105,6 +134,7 @@ function parseContent(content) {
                         result += ',';
                         expectingKey = true;
                     }
+
                 }
             } else if ((lastChar !== ' ' && stringStarted)) {
                 result += '"';
@@ -113,6 +143,7 @@ function parseContent(content) {
                     result += ',';
                     expectingKey = true;
                 }
+
             }
 
             if (char === '>' || char === '<') {
