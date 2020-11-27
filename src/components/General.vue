@@ -1,6 +1,7 @@
 <template>
   <div class="general">
     <FileField label="Choose national tree file" @input="treeChosen"/>
+    <FileField label="Choose gfx files" @input="gfxFiles" accept=".dds, .tga" :multiple="true" :text-file="false"/>
   </div>
 </template>
 
@@ -12,6 +13,9 @@ export default {
   methods: {
     treeChosen({content}){
       this.$emit('tree-chosen',content);
+    },
+    gfxFiles(files){
+      this.$emit('gfx-files', files);
     }
   }
 }

@@ -1,7 +1,7 @@
 <template>
   <div class="file has-name is-boxed">
     <label class="file-label">
-      <input class="file-input" type="file" name="resume" accept=".txt" @change="processFile">
+      <input class="file-input" type="file" name="resume" :accept="accept" @change="processFiles" :multiple="multiple">
       <span class="file-cta">
       <span class="file-icon">
         <i class="fas fa-upload"></i>
@@ -21,6 +21,18 @@ export default {
     label: {
       type: String,
       default: 'Choose a file'
+    },
+    multiple: {
+      type: Boolean,
+      default: false
+    },
+    accept: {
+      type: String,
+      default: '.txt'
+    },
+    textFile: {
+      type: Boolean,
+      default: true
     }
   },
 
@@ -31,14 +43,27 @@ export default {
   },
 
   methods: {
-    async processFile(event) {
-      const file = event.target.files[0];
+    async processFile(file) {
       this.fileName = file.name;
       const content = await this.processFileContent(file);
-      this.$emit('input', {
-        file,
-        content
-      });
+      return content;
+
+    },
+
+    async processFiles(event) {
+      let result = [];
+      for (let i = 0; i < event.target.files.length; i++) {
+        const file = event.target.files[i];
+        const content = await this.processFile(file);
+        result.push({
+          file,
+          content
+        });
+      }
+      if (!this.multiple) {
+        result = result[0];
+      }
+      this.$emit('input', result)
     },
 
     processFileContent(file) {
@@ -54,11 +79,14 @@ export default {
           resolve(reader.result);
         });
 
-        reader.readAsText(file);
+        if (this.textFile) {
+          reader.readAsText(file);
+        } else {
+          reader.readAsDataURL(file);
+        }
 
       });
     }
-
   },
 
 }

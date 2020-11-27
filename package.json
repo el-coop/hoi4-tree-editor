@@ -10,6 +10,8 @@
     "bulma": "^0.9.1",
     "clarinet": "^0.12.4",
     "core-js": "^3.6.5",
+    "tga-js": "^1.1.1",
+    "three": "^0.123.0",
     "vue": "^2.6.11"
   },
   "devDependencies": {
