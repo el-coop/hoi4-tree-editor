@@ -1,7 +1,7 @@
 <template>
   <div id="app">
-    <General @tree-chosen="parseTree"/>
-    <TreeView :tree="tree"/>
+    <General @tree-chosen="parseTree" @gfx-files="addGfxFiles"/>
+    <TreeView :tree="tree" :gfx-files="gfxFiles"/>
   </div>
 </template>
 
@@ -9,6 +9,8 @@
 import General from './components/General.vue'
 import TreeView from './components/TreeView.vue'
 import FocusTree from "@/classes/FocusTree";
+import {DDSLoader} from '@/classes/DDSLoader';
+import * as THREE from 'three';
 
 export default {
   name: 'App',
@@ -16,14 +18,32 @@ export default {
     General,
     TreeView
   },
-  data(){
+  data() {
     return {
       tree: null,
+      gfxFiles: {}
     }
   },
   methods: {
+    loadFile(file, canvasId = 'canvas', parse = false) {
+
+
+    },
     async parseTree(content) {
       this.tree = await (new FocusTree(content)).parseContent();
+    },
+    addGfxFiles(files) {
+      files.forEach(({file, content}, index) => {
+        if (index == 0) {
+          this.loadFile(content, 'canvas1', true);
+        }
+        const name = file.name.slice(0, file.name.lastIndexOf('.'));
+        this.gfxFiles[name] = {
+          content,
+          file
+        }
+      });
+      this.$events.$emit('gfx-updated');
     }
   }
 }
