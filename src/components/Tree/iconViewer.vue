@@ -5,12 +5,13 @@
 <script>
 import * as THREE from "three";
 import {DDSLoader} from "@/classes/DDSLoader";
+import {TGALoader} from "@/classes/TGALoader";
 
 export default {
-  name: "ddsViewer",
+  name: "iconViewer",
   props: {
     file: {
-      required: true
+      required: true,
     },
     name: {
       type: String
@@ -53,7 +54,7 @@ export default {
       const scene = new THREE.Scene();
 
 
-      const map = await this.loadTexture(file);
+      const map = await this.loadTexture(file.content);
 
       const material = new THREE.MeshBasicMaterial({
         map,
@@ -75,11 +76,16 @@ export default {
       }
 
     },
-    loadTexture(file) {
+    loadTexture(content) {
       return new Promise((resolve, reject) => {
-        const ddsLoader = new DDSLoader();
+        let loader;
+        if(this.file.file.name.endsWith('.dds')){
+          loader = new DDSLoader();
+        } else {
+          loader = new TGALoader();
+        }
 
-        ddsLoader.load(file, (texture) => {
+        loader.load(content, (texture) => {
           if (this.name === 'GFX_focus_ALO_DKB' || this.name === 'GFX_focus_ALO_sun') {
           }
           resolve(texture);

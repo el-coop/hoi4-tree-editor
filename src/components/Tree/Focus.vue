@@ -1,16 +1,20 @@
 <template>
   <div class="focus" :style="style">
-    <dds-viewer v-if="iconType == 'dds'" :file="icon" :name="focus.icon[0]"/>
+    <div class="focus__icon-wrapper">
+      <icon-viewer :file="icon" :name="focus.icon[0]"/>
+    </div>
+    <div class="focus__description">
 
+    </div>
   </div>
 </template>
 
 <script>
-import ddsViewer from "@/components/Tree/ddsViewer";
+import iconViewer from "@/components/Tree/iconViewer";
 
 export default {
   name: "Focus",
-  components: {ddsViewer},
+  components: {iconViewer},
   props: {
     gfxFiles: {
       type: Object,
@@ -25,7 +29,8 @@ export default {
   data() {
     return {
       iconType: null,
-      icon: null
+      icon: null,
+      iconName: ''
     };
   },
 
@@ -50,17 +55,25 @@ export default {
   methods: {
     showIcon() {
       let iconFileName = this.focus.icon[0];
-      if (iconFileName.indexOf('GFX_focus_') > -1) {
+      if (iconFileName.indexOf('GFX_') > -1) {
         iconFileName = iconFileName.substr(4);
       }
+      let file = this.gfxFiles[iconFileName] || false;
 
-      const file = this.gfxFiles[iconFileName] || false;
+      if (!file) {
+        if (iconFileName.indexOf('focus_') > -1) {
+          iconFileName = iconFileName.substr(6);
+        } else if (iconFileName.indexOf('goal_') > -1) {
+          iconFileName = iconFileName.substr(5);
+        }
+      }
+
+      file = this.gfxFiles[iconFileName] || false;
+
+      this.iconName = iconFileName;
 
       if (file) {
-        this.icon = file.content;
-        if (file.file.name.endsWith('.dds')) {
-          this.iconType = 'dds';
-        }
+        this.icon = file;
       }
     }
 
@@ -74,10 +87,21 @@ export default {
 }
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .focus {
   position: absolute;
   padding: 5px;
-  /*overflow: hidden;*/
+
+  &__icon-wrapper {
+    height: 140px;
+    width: 150px;
+  }
+
+  &__description {
+    color: white;
+    border: 1px solid #1e1e2f;
+    width: 100%;
+    min-height: 10px;
+  }
 }
 </style>
